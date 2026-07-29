@@ -1,0 +1,159 @@
+taxonomy_version: "1.0.0"
+primary_hazard_precedence:
+  - pathogen_contamination
+  - undeclared_allergen
+  - chemical_or_residue
+  - foreign_material
+  - process_control_or_underprocessing
+  - packaging_integrity
+  - unapproved_ingredient_or_additive
+  - labeling_or_misbranding
+  - quality_or_spoilage
+rules:
+  - rule_id: hazard-pathogen
+    tag_type: hazard
+    tag_value: pathogen_contamination
+    regex: '\b(?:listeria|salmonella|e\.?\s*coli|stec|campylobacter|clostridium)\b'
+    priority: 100
+    explanation: Explicit named microbiological hazard.
+    taxonomy_version: "1.0.0"
+  - rule_id: pathogen-listeria
+    tag_type: pathogen
+    tag_value: listeria
+    regex: '\blisteria(?:\s+monocytogenes)?\b'
+    priority: 10
+    explanation: Explicit Listeria mention.
+    taxonomy_version: "1.0.0"
+  - rule_id: pathogen-salmonella
+    tag_type: pathogen
+    tag_value: salmonella
+    regex: '\bsalmonella\b'
+    priority: 10
+    explanation: Explicit Salmonella mention.
+    taxonomy_version: "1.0.0"
+  - rule_id: pathogen-e-coli-stec
+    tag_type: pathogen
+    tag_value: e_coli_stec
+    regex: '\b(?:e\.?\s*coli|stec|shiga\s+toxin)\b'
+    priority: 10
+    explanation: Explicit E. coli or STEC mention.
+    taxonomy_version: "1.0.0"
+  - rule_id: hazard-undeclared-allergen
+    tag_type: hazard
+    tag_value: undeclared_allergen
+    regex: '\b(?:undeclared|not\s+declared|missing|omitted)\b.{0,60}\b(?:allergen|milk|egg|fish|shellfish|tree\s+nuts?|peanut|wheat|soy|sesame|almond|walnut|cashew|pecan|pistachio|hazelnut)\b'
+    priority: 100
+    explanation: Declaration cue paired with a major allergen term.
+    taxonomy_version: "1.0.0"
+  - rule_id: allergen-milk
+    tag_type: allergen
+    tag_value: milk
+    regex: '\b(?:undeclared|not\s+declared|missing|omitted)\b.{0,60}\bmilk\b'
+    priority: 10
+    explanation: Declaration cue paired with milk.
+    taxonomy_version: "1.0.0"
+  - rule_id: allergen-egg
+    tag_type: allergen
+    tag_value: egg
+    regex: '\b(?:undeclared|not\s+declared|missing|omitted)\b.{0,60}\beggs?\b'
+    priority: 10
+    explanation: Declaration cue paired with egg.
+    taxonomy_version: "1.0.0"
+  - rule_id: allergen-fish
+    tag_type: allergen
+    tag_value: fish
+    regex: '\b(?:undeclared|not\s+declared|missing|omitted)\b.{0,60}\bfish\b'
+    priority: 10
+    explanation: Declaration cue paired with fish.
+    taxonomy_version: "1.0.0"
+  - rule_id: allergen-shellfish
+    tag_type: allergen
+    tag_value: crustacean_shellfish
+    regex: '\b(?:undeclared|not\s+declared|missing|omitted)\b.{0,60}\b(?:shellfish|crustacean)\b'
+    priority: 10
+    explanation: Declaration cue paired with crustacean shellfish.
+    taxonomy_version: "1.0.0"
+  - rule_id: allergen-tree-nuts
+    tag_type: allergen
+    tag_value: tree_nuts
+    regex: '\b(?:undeclared|not\s+declared|missing|omitted)\b.{0,60}\b(?:tree\s+nuts?|almond|walnut|cashew|pecan|pistachio|hazelnut)\b'
+    priority: 10
+    explanation: Declaration cue paired with a tree nut.
+    taxonomy_version: "1.0.0"
+  - rule_id: allergen-peanut
+    tag_type: allergen
+    tag_value: peanut
+    regex: '\b(?:undeclared|not\s+declared|missing|omitted)\b.{0,60}\bpeanuts?\b'
+    priority: 10
+    explanation: Declaration cue paired with peanut.
+    taxonomy_version: "1.0.0"
+  - rule_id: allergen-wheat
+    tag_type: allergen
+    tag_value: wheat
+    regex: '\b(?:undeclared|not\s+declared|missing|omitted)\b.{0,60}\bwheat\b'
+    priority: 10
+    explanation: Declaration cue paired with wheat.
+    taxonomy_version: "1.0.0"
+  - rule_id: allergen-soy
+    tag_type: allergen
+    tag_value: soy
+    regex: '\b(?:undeclared|not\s+declared|missing|omitted)\b.{0,60}\bsoy(?:beans?)?\b'
+    priority: 10
+    explanation: Declaration cue paired with soy.
+    taxonomy_version: "1.0.0"
+  - rule_id: allergen-sesame
+    tag_type: allergen
+    tag_value: sesame
+    regex: '\b(?:undeclared|not\s+declared|missing|omitted)\b.{0,60}\bsesame\b'
+    priority: 10
+    explanation: Declaration cue paired with sesame.
+    taxonomy_version: "1.0.0"
+  - rule_id: hazard-foreign-material
+    tag_type: hazard
+    tag_value: foreign_material
+    regex: '\b(?:foreign\s+material|glass|metal(?:lic)?|plastic|rubber|wood\s+fragment)\b'
+    priority: 100
+    explanation: Explicit foreign-material term.
+    taxonomy_version: "1.0.0"
+  - rule_id: hazard-chemical-residue
+    tag_type: hazard
+    tag_value: chemical_or_residue
+    regex: '\b(?:pesticide|chemical\s+residue|lead|mercury|cleaning\s+(?:agent|chemical)|sanitizer)\b'
+    priority: 100
+    explanation: Explicit chemical, residue, or heavy-metal term.
+    taxonomy_version: "1.0.0"
+  - rule_id: hazard-underprocessing
+    tag_type: hazard
+    tag_value: process_control_or_underprocessing
+    regex: '\b(?:underprocess(?:ed|ing)?|undercook(?:ed|ing)?|inadequate(?:ly)?\s+(?:cooked|pasteurized)|insufficient(?:ly)?\s+(?:cooked|pasteurized))\b'
+    priority: 100
+    explanation: Explicit underprocessing or inadequate heat-treatment term.
+    taxonomy_version: "1.0.0"
+  - rule_id: hazard-packaging-integrity
+    tag_type: hazard
+    tag_value: packaging_integrity
+    regex: '\b(?:packaging\s+(?:integrity|defect)|broken\s+seal|leak(?:ing)?\s+package|compromised\s+package)\b'
+    priority: 100
+    explanation: Explicit package integrity or seal failure term.
+    taxonomy_version: "1.0.0"
+  - rule_id: hazard-unapproved-additive
+    tag_type: hazard
+    tag_value: unapproved_ingredient_or_additive
+    regex: '\b(?:unapproved|unauthorized)\b.{0,60}\b(?:ingredient|additive|color(?:ing)?)\b'
+    priority: 100
+    explanation: Explicit unapproved ingredient or additive term.
+    taxonomy_version: "1.0.0"
+  - rule_id: hazard-misbranding
+    tag_type: hazard
+    tag_value: labeling_or_misbranding
+    regex: '\b(?:misbrand(?:ed|ing)?|incorrect\s+label|label(?:ing)?\s+error)\b'
+    priority: 100
+    explanation: Explicit labeling or misbranding term.
+    taxonomy_version: "1.0.0"
+  - rule_id: hazard-quality-spoilage
+    tag_type: hazard
+    tag_value: quality_or_spoilage
+    regex: '\b(?:spoilage|spoiled|mou?ld|off[-\s]?odor|rancid)\b'
+    priority: 100
+    explanation: Explicit quality or spoilage term.
+    taxonomy_version: "1.0.0"

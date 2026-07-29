@@ -1,0 +1,18 @@
+[
+  {
+    "recall_number": "F-123-2011",
+    "event_id": "123456",
+    "product_description": "  Crème\tMilk Product  ",
+    "reason_for_recall": "Undeclared\nSesame; possible Listeria monocytogenes.",
+    "recalling_firm": "Example Foods, Inc.",
+    "recall_initiation_date": "20110601",
+    "report_date": "20110610",
+    "center_classification_date": "20110615",
+    "code_info": "LOT 44"
+  },
+  {
+    "recall_number": "F-OLD-2005",
+    "product_description": "Legacy food",
+    "report_date": "20050101"
+  }
+]

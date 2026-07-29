@@ -1,0 +1,32 @@
+taxonomy_version: "1.0.0"
+rules:
+  - rule_id: category-dairy
+    category: dairy
+    regex: '\b(?:milk|cheese|yogurt|butter|ice\s+cream)\b'
+    priority: 10
+    explanation: Product description names a dairy food.
+  - rule_id: category-bakery
+    category: bakery_and_grain
+    regex: '\b(?:bread|cake|cookies?|flour|cereal|tortilla)\b'
+    priority: 10
+    explanation: Product description names a bakery or grain food.
+  - rule_id: category-produce
+    category: produce
+    regex: '\b(?:lettuce|salad|spinach|fruit|vegetable|avocado)\b'
+    priority: 10
+    explanation: Product description names produce.
+  - rule_id: category-seafood
+    category: seafood
+    regex: '\b(?:fish|salmon|tuna|shrimp|crab|seafood)\b'
+    priority: 10
+    explanation: Product description names seafood.
+  - rule_id: category-meat
+    category: meat_or_poultry
+    regex: '\b(?:beef|pork|chicken|turkey|sausage|meat)\b'
+    priority: 10
+    explanation: Product description names meat or poultry.
+  - rule_id: category-beverage
+    category: beverage
+    regex: '\b(?:juice|beverage|drink|soda|water|tea)\b'
+    priority: 10
+    explanation: Product description names a beverage.

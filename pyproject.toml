@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "recallready"
+version = "0.1.0"
+description = "Historical U.S. food recall intelligence and tabletop preparedness."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "altair==5.5.0",
+    "httpx==0.28.1",
+    "openai==1.68.2",
+    "pandas==2.2.3",
+    "polars==1.22.0",
+    "pydantic==2.10.6",
+    "streamlit==1.54.0",
+    "Pillow==12.3.0",
+    "PyYAML==6.0.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "mypy==1.15.0",
+    "pytest==9.0.3",
+    "ruff==0.9.10",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+extend-exclude = [".venv", "data/raw", "data/derived"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501", "B008"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["src"]
+strict = true
+warn_unused_configs = true
+explicit_package_bases = true
+mypy_path = ["src"]
+disable_error_code = ["no-any-return"]

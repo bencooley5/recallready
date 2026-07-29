@@ -1,0 +1,14 @@
+source_url: https://www.fda.gov/food/food-safety-modernization-act-fsma/food-traceability-list
+retrieved_date: '2026-07-29'
+review_status: curated_for_educational_context_only
+categories:
+  - name: Finfish
+    description: Finfish, including fresh and frozen forms, as listed by FDA.
+  - name: Crustaceans
+    description: Crustaceans, including fresh and frozen forms, as listed by FDA.
+  - name: Leafy Greens
+    description: Leafy greens, including fresh-cut leafy greens, as listed by FDA.
+  - name: Soft Cheeses
+    description: Soft cheeses, including specified fresh soft cheeses, as listed by FDA.
+  - name: Nut Butters
+    description: Nut butters, as listed by FDA.
