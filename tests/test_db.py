@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import pytest
@@ -107,5 +108,18 @@ def test_atomic_rebuild_preserves_prior_database_on_failure(database_path: Path)
     repository = RecallRepository(database_path)
     try:
         assert repository.summary_metrics()["product_record_count"] == 3
+    finally:
+        repository.close()
+
+
+def test_readonly_repository_supports_streamlit_cached_threads(database_path: Path) -> None:
+    """A cached read-only repository can serve separate Streamlit request threads."""
+    repository = RecallRepository(database_path)
+    try:
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            first = executor.submit(repository.summary_metrics)
+            second = executor.submit(repository.summary_metrics)
+            assert first.result()["product_record_count"] == 3
+            assert second.result()["product_record_count"] == 3
     finally:
         repository.close()

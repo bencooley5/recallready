@@ -27,7 +27,12 @@ class RecallRepository:
     """Expose only reviewed query operations over a read-only SQLite connection."""
 
     def __init__(self, database_path: Path) -> None:
-        self._connection = sqlite3.connect(f"file:{database_path.resolve()}?mode=ro", uri=True)
+        # Streamlit caches this read-only repository as a shared resource and can
+        # serve different page requests from different threads. SQLite is opened
+        # read-only, so cross-thread access cannot mutate the derived database.
+        self._connection = sqlite3.connect(
+            f"file:{database_path.resolve()}?mode=ro", uri=True, check_same_thread=False
+        )
         self._connection.row_factory = sqlite3.Row
 
     def close(self) -> None:
