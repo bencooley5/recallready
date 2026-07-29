@@ -9,6 +9,7 @@ from typing import Protocol
 from recallready.chat.guardrails import preflight, validate_evidence
 from recallready.chat.prompts import SYSTEM_PROMPT
 from recallready.chat.schemas import (
+    CompareArgs,
     DetailArgs,
     EventArgs,
     Filters,
@@ -16,6 +17,8 @@ from recallready.chat.schemas import (
     GroupArgs,
     MethodologyArgs,
     SearchArgs,
+    TabletopEvidenceArgs,
+    strict_json_schema,
     tool_definition,
 )
 from recallready.chat.tools import ToolDispatcher
@@ -31,11 +34,11 @@ TOOL_DEFINITIONS = [
     tool_definition("get_summary", Filters, "Get historical product-record and known-event totals."),
     tool_definition("search_recall_records", SearchArgs, "Search historical source text."),
     tool_definition("group_recall_records", GroupArgs, "Group historical records by an allowlisted dimension."),
-    {"type": "function", "name": "compare_segments", "description": "Compare two structured historical segments.", "parameters": {"type": "object", "additionalProperties": False, "properties": {"segment_a": Filters.model_json_schema(), "segment_b": Filters.model_json_schema(), "metric": {"type": "string", "enum": ["product_records", "unique_events"]}}, "required": ["segment_a", "segment_b", "metric"]}, "strict": True},
+    tool_definition("compare_segments", CompareArgs, "Compare two structured historical segments."),
     tool_definition("get_recall_detail", DetailArgs, "Get a cited record by source ID or recall number."),
     tool_definition("get_event_detail", EventArgs, "Get product records in one event."),
     tool_definition("get_methodology", MethodologyArgs, "Get approved methodology text."),
-    {"type": "function", "name": "build_tabletop_evidence", "description": "Get bounded comparable historical evidence.", "parameters": {"type": "object", "additionalProperties": False, "properties": {"filters": Filters.model_json_schema(), "limit": {"type": "integer", "minimum": 1, "maximum": 50}}, "required": ["filters", "limit"]}, "strict": True},
+    tool_definition("build_tabletop_evidence", TabletopEvidenceArgs, "Get bounded comparable historical evidence."),
 ]
 
 
@@ -59,7 +62,23 @@ class RecallReadyAgent:
         inputs: list[object] = [{"role": "user", "content": question}]
         available: set[str] = set()
         for _ in range(min(self.settings.max_chat_turns_per_session, 4)):
-            response = self.client.create(model=self.settings.openai_model, instructions=SYSTEM_PROMPT, input=inputs, tools=TOOL_DEFINITIONS, max_output_tokens=700, store=False, text={"format": {"type": "json_schema", "name": "recallready_answer", "strict": True, "schema": FinalAnswer.model_json_schema()}})
+            response = self.client.create(
+                model=self.settings.openai_model,
+                instructions=SYSTEM_PROMPT,
+                input=inputs,
+                tools=TOOL_DEFINITIONS,
+                parallel_tool_calls=False,
+                max_output_tokens=700,
+                store=False,
+                text={
+                    "format": {
+                        "type": "json_schema",
+                        "name": "recallready_answer",
+                        "strict": True,
+                        "schema": strict_json_schema(FinalAnswer),
+                    }
+                },
+            )
             calls = _calls(response)
             if not calls:
                 try:
@@ -69,6 +88,7 @@ class RecallReadyAgent:
                 answer = validate_evidence(answer, available)
                 self._cache[key] = answer
                 return answer
+            inputs.extend(_output_items(response))
             for call_id, name, arguments in calls:
                 try:
                     result = self.dispatcher.dispatch(name, arguments)
@@ -82,18 +102,42 @@ class RecallReadyAgent:
 
 
 def _calls(response: object) -> list[tuple[str, str, dict[str, object]]]:
-    output = response.get("output", []) if isinstance(response, dict) else getattr(response, "output", [])
+    output = _raw_output(response)
     if not isinstance(output, list):
         return []
     calls: list[tuple[str, str, dict[str, object]]] = []
     for item in output:
-        value = item if isinstance(item, dict) else vars(item)
+        value = _item_mapping(item)
         if value.get("type") == "function_call":
             try:
                 calls.append((str(value["call_id"]), str(value["name"]), json.loads(str(value["arguments"]))))
             except (KeyError, json.JSONDecodeError):
                 calls.append((str(value.get("call_id", "invalid")), "invalid", {}))
     return calls
+
+
+def _output_items(response: object) -> list[object]:
+    """Replay every model output item before linked function-call outputs."""
+    return [dict(_item_mapping(item)) for item in _raw_output(response)]
+
+
+def _raw_output(response: object) -> list[object]:
+    output = response.get("output", []) if isinstance(response, dict) else getattr(response, "output", [])
+    return output if isinstance(output, list) else []
+
+
+def _item_mapping(item: object) -> dict[str, object]:
+    if isinstance(item, dict):
+        return item
+    model_dump = getattr(item, "model_dump", None)
+    if callable(model_dump):
+        dumped = model_dump(mode="json", exclude_none=True)
+        if isinstance(dumped, dict):
+            return dumped
+    try:
+        return vars(item)
+    except TypeError:
+        return {}
 
 
 def _text(response: object) -> str:

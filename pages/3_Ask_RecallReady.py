@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from time import monotonic
 
 import streamlit as st
@@ -27,6 +28,7 @@ SUGGESTIONS = [
     "Explain the difference between a recall event and a product record.",
     "Create evidence for a seafood recall tabletop exercise.",
 ]
+LOGGER = logging.getLogger(__name__)
 
 
 def _turns() -> list[ChatTurn]:
@@ -39,9 +41,6 @@ def _evidence(repo: object, references: list[str]) -> list[dict[str, object]]:
     rows: list[dict[str, object]] = []
     for reference in references:
         detail = repo.recall_detail(reference)
-        if detail is None:
-            candidates = repo.search_records(limit=200)
-            detail = next((row for row in candidates if row.get("recall_number") == reference), None)
         if detail is not None:
             rows.append(detail)
     return rows
@@ -58,7 +57,10 @@ def _render_answer(answer: FinalAnswer, evidence: list[dict[str, object]]) -> No
     with st.expander("Evidence and data scope"):
         if evidence:
             fields = ["recall_number", "event_id", "report_date", "recalling_firm", "product_description"]
-            st.dataframe([{field: row.get(field) for field in fields} for row in evidence], use_container_width=True)
+            st.dataframe(
+                [{field: row.get(field) for field in fields} for row in evidence],
+                width="stretch",
+            )
             for row in evidence:
                 url = official_source_url(row.get("recall_number"))
                 if url:
@@ -94,7 +96,9 @@ for turn in turns:
 
 if not settings.chat_available:
     st.subheader("Guided historical query builder")
-    st.info("Chat is disabled. Use this deterministic summary while no OpenAI credentials are configured.")
+    st.info(
+        "Chat is disabled. Configure both OPENAI_API_KEY and OPENAI_MODEL to enable it; the deterministic query builder remains available."
+    )
     classifications = st.multiselect("Classification", ["Class I", "Class II", "Class III"])
     if st.button("Run historical summary"):
         from recallready.db.repository import RecordFilters
@@ -105,9 +109,15 @@ if not settings.chat_available:
     st.stop()
 
 st.caption("Suggested questions")
-for suggestion in SUGGESTIONS:
-    st.write(f"- {suggestion}")
-question = st.chat_input("Ask about historical enforcement records", max_chars=settings.max_chat_input_chars)
+suggestion_columns = st.columns(2)
+pending_question: str | None = None
+for index, suggestion in enumerate(SUGGESTIONS):
+    if suggestion_columns[index % 2].button(suggestion, key=f"suggestion-{index}"):
+        pending_question = suggestion
+question = st.chat_input(
+    "Ask about historical enforcement records", max_chars=settings.max_chat_input_chars
+)
+question = question or pending_question
 if question:
     reason = can_submit(turns, question, max_turns=settings.max_chat_turns_per_session, last_request=st.session_state.get("recallready_chat_last_request"))
     if reason:
@@ -128,5 +138,9 @@ if question:
                 else:
                     _render_answer(answer, evidence)
                     st.session_state["recallready_chat_turns"] = append_turn(turns, question, answer)
-            except Exception:
+            except Exception as error:
+                LOGGER.warning(
+                    "Chat request failed safely",
+                    extra={"error_type": type(error).__name__},
+                )
                 st.warning("Ask RecallReady is temporarily unavailable. No answer was saved.")

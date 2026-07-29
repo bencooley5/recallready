@@ -146,3 +146,17 @@ def test_empty_results_have_no_descriptive_finding() -> None:
         "No historical enforcement records match the selected filter scope; no descriptive finding is produced.",
     )
     assert "Product-record count: 0" in bundle.markdown
+
+
+def test_partial_source_month_is_excluded_from_comparisons() -> None:
+    bundle = _bundle(
+        time_series=[
+            {"period": "2024-01", "product_record_count": 10},
+            {"period": "2024-02", "product_record_count": 20},
+            {"period": "2024-03", "product_record_count": 2},
+        ],
+        snapshot_metadata={"source_last_updated": "2024-03-12"},
+    )
+    assert any("Partial source month 2024-03" in item for item in bundle.statements)
+    assert any("2024-02) versus 2024-01" in item for item in bundle.statements)
+    assert not any("versus 2024-02: -18" in item for item in bundle.statements)

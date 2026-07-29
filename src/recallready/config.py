@@ -29,7 +29,11 @@ class Settings:
     @property
     def chat_available(self) -> bool:
         """Return whether chat may be offered in this process."""
-        return self.chat_enabled and self.openai_api_key is not None
+        return (
+            self.chat_enabled
+            and self.openai_api_key is not None
+            and self.openai_model is not None
+        )
 
 
 def get_settings(environ: Mapping[str, str] | None = None) -> Settings:

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from recallready.chat.agent import TOOL_DEFINITIONS, RecallReadyAgent
-from recallready.chat.schemas import FinalAnswer
+from recallready.chat.schemas import Filters, FinalAnswer, strict_json_schema
 from recallready.config import get_settings
 
 
@@ -35,6 +35,12 @@ def test_common_question_calls_only_allowlisted_summary_tool() -> None:
     answer = RecallReadyAgent(client, _settings(), FakeDispatcher()).answer("How many records are there?")
     assert answer.evidence_refs == ["F-1"]
     assert {tool["name"] for tool in TOOL_DEFINITIONS} >= {"get_summary", "search_recall_records"}
+    second_input = client.calls[1]["input"]
+    assert isinstance(second_input, list)
+    assert [item["type"] for item in second_input[-2:]] == [
+        "function_call",
+        "function_call_output",
+    ]
 
 
 def test_methodology_can_answer_without_tool_and_malformed_output_is_limited() -> None:
@@ -62,3 +68,22 @@ def test_invalid_args_excessive_rows_and_unknown_evidence_are_safe() -> None:
 def test_missing_api_key_disables_chat() -> None:
     answer = RecallReadyAgent(None, _settings(""), FakeDispatcher()).answer("How many?")
     assert "unavailable" in answer.answer_markdown
+
+
+def test_responses_schemas_are_strict_at_every_object_level() -> None:
+    schema = strict_json_schema(Filters)
+
+    def assert_strict(node: object) -> None:
+        if isinstance(node, list):
+            for item in node:
+                assert_strict(item)
+        elif isinstance(node, dict):
+            properties = node.get("properties")
+            if isinstance(properties, dict):
+                assert node.get("additionalProperties") is False
+                assert set(node.get("required", [])) == set(properties)
+            for item in node.values():
+                assert_strict(item)
+
+    assert_strict(schema)
+    assert all(tool.get("strict") is True for tool in TOOL_DEFINITIONS)

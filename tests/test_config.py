@@ -29,6 +29,12 @@ def test_chat_cannot_be_enabled_without_a_key() -> None:
     assert settings.chat_available is False
 
 
+def test_chat_requires_a_configured_model() -> None:
+    settings = get_settings({"OPENAI_API_KEY": "placeholder", "CHAT_ENABLED": "true"})
+    assert settings.chat_enabled is True
+    assert settings.chat_available is False
+
+
 def test_invalid_chat_limit_is_rejected() -> None:
     """Configuration values fail early instead of silently weakening safeguards."""
     with pytest.raises(SettingsError, match="MAX_CHAT_INPUT_CHARS"):

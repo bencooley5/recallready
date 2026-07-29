@@ -20,7 +20,9 @@ Recall reasons and product descriptions are unstructured source text. Rules can 
 
 ## Deterministic executive insights
 
-Executive insights are rendered from reviewed repository aggregates and templates; they do not use an LLM. They state the filter scope, date basis, product-record count, known-event count, source freshness, and caveats. A percentage change is shown only when the comparison period contains at least 10 product records; otherwise the absolute difference is retained and the percentage is explicitly suppressed. Derived taxonomy/product combinations are descriptive observations only. The brief does not infer causation, current recall lifecycle, product safety, or a firm's conduct.
+Executive insights are rendered from reviewed repository aggregates and templates; they do not use an LLM. Every KPI and chart uses the complete filtered result set. Display and CSV row caps never determine an executive metric. Date range conditions and monthly aggregation use the selected source date (`report_date` or `recall_initiation_date`), and keyword text is applied consistently through a parameterized FTS phrase filter.
+
+Insights state the filter scope, date basis, product-record count, known-event count, source freshness, and caveats. If the source freshness date falls before the end of its calendar month, that partial month remains visible in charts but is excluded from period-over-period and mix-shift statements. A percentage change is shown only when the comparison period contains at least 10 product records; otherwise the absolute difference is retained and the percentage is explicitly suppressed. Derived taxonomy/product combinations are descriptive observations only. The brief does not infer causation, current recall lifecycle, product safety, or a firm's conduct.
 
 ## Traceability tabletop lab
 

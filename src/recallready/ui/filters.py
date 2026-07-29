@@ -4,7 +4,19 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
 
+from recallready.db.queries import DateBasis
 from recallready.db.repository import RecordFilters
+
+VALID_CLASSIFICATIONS = {"Class I", "Class II", "Class III", "Not Yet Classified"}
+VALID_PRODUCT_CATEGORIES = {
+    "dairy",
+    "bakery_and_grain",
+    "produce",
+    "seafood",
+    "meat_or_poultry",
+    "beverage",
+    "unknown",
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -25,6 +37,8 @@ def to_record_filters(state: FilterState) -> RecordFilters:
         classifications=state.classifications,
         product_categories=state.product_categories,
         states=state.firm_states,
+        keyword=state.keyword,
+        date_basis=DateBasis(state.date_basis),
     )
 
 
@@ -40,6 +54,8 @@ def to_query_params(state: FilterState) -> dict[str, str]:
         values["category"] = ",".join(state.product_categories)
     if state.firm_states:
         values["firm_state"] = ",".join(state.firm_states)
+    if state.keyword.strip():
+        values["keyword"] = " ".join(state.keyword.split())[:120]
     return values
 
 
@@ -53,4 +69,24 @@ def from_query_params(values: dict[str, str]) -> FilterState:
     def split(key: str) -> tuple[str, ...]:
         return tuple(item for item in values.get(key, "").split(",") if item and len(item) <= 80)[:20]
     basis = values.get("basis", "report_date")
-    return FilterState(parsed_date("start"), parsed_date("end"), split("classification"), split("category"), split("firm_state"), "", basis if basis in {"report_date", "recall_initiation_date"} else "report_date")
+    classifications = tuple(
+        value for value in split("classification") if value in VALID_CLASSIFICATIONS
+    )
+    categories = tuple(
+        value for value in split("category") if value in VALID_PRODUCT_CATEGORIES
+    )
+    states = tuple(
+        value
+        for value in split("firm_state")
+        if value.replace("-", "").replace(" ", "").isalnum()
+    )
+    keyword = " ".join(values.get("keyword", "").split())[:120]
+    return FilterState(
+        parsed_date("start"),
+        parsed_date("end"),
+        classifications,
+        categories,
+        states,
+        keyword,
+        basis if basis in {"report_date", "recall_initiation_date"} else "report_date",
+    )

@@ -44,7 +44,9 @@ def build_tabletop(inputs: TabletopInputs, records: Sequence[Mapping[str, object
     """Build a fixed educational exercise; no compliance decision is made."""
     analogs = select_analogs(records, inputs)
     ftl = f" The user selected the FTL context '{inputs.ftl_category}'." if inputs.ftl_category else " No FTL category was selected."
-    objective = f"Practice tracing a fictional {inputs.hazard_category} signal involving {inputs.product_category} across {inputs.facilities} facility or facilities."
+    hazard_label = inputs.hazard_category or "traceability"
+    facility_label = "facility" if inputs.facilities == 1 else "facilities"
+    objective = f"Practice tracing a fictional {hazard_label} signal involving {inputs.product_category} across {inputs.facilities} {facility_label}."
     narrative = f"At 09:00, the {inputs.company_profile} team receives a fictional quality escalation involving a {inputs.product_category} lot distributed across a {inputs.distribution_scope} footprint.{ftl}"
     injects = ("09:15 — A lot identifier is incomplete in one receiving record.", "09:45 — A trading partner requests a product and destination list.", "10:30 — A second facility reports potentially related inventory.", "11:15 — Leadership requests a concise traceability status and assumptions log.")
     assumptions = ("This is a fictional preparedness exercise inspired by historical records, not a current incident.", "FTL selection is educational context only; coverage, exemptions, and obligations require independent review.", "The FDA describes a 24-hour records-production context for persons subject to the rule; this exercise does not determine whether it applies.", "Completing this exercise does not establish compliance.")

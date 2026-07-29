@@ -13,6 +13,8 @@
 | ADR-007 | Insights and tabletop materials are deterministic templates driven by repository queries. | Repeatability, reviewability, and clear separation of historical evidence from generated prose are more valuable than unconstrained generation. |
 | ADR-008 | Keep all inference local to historical description and avoid safety/current-status/advice claims. | This honors openFDA's explicit disclaimer that the data is not an alert feed and status is not maintained after classification. |
 | ADR-009 | Require a validated committed `data/recalls.parquet` and `snapshot_metadata.json` before public release. | Community Cloud rebuilds disposable SQLite locally; without the public snapshot the app must remain in an explicit data-not-loaded state rather than fetching live data. |
+| ADR-010 | Apply date basis, date range, classification, product category, recalling-firm state, and keyword in the repository filter object used by every metric and aggregate. | Dashboard cards and charts must describe one identical filtered population; sampled rows are reserved for display/export and never drive executive KPIs. |
+| ADR-011 | Replay every Responses API output item during tool continuations and generate strict schemas with all object properties required. | This follows the current Responses function-calling and Structured Outputs contracts while keeping optional values explicitly nullable and all tool inputs validated. |
 
 ## Risks and limitations
 

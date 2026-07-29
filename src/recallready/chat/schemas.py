@@ -49,6 +49,19 @@ class MethodologyArgs(BaseModel):
     topic: Literal["source", "taxonomy", "metrics", "limitations", "freshness"]
 
 
+class CompareArgs(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    segment_a: Filters
+    segment_b: Filters
+    metric: Literal["product_records", "unique_events"]
+
+
+class TabletopEvidenceArgs(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    filters: Filters
+    limit: int = Field(ge=1, le=50)
+
+
 class FinalAnswer(BaseModel):
     """Validated model output; claims are checked against tool evidence separately."""
 
@@ -64,6 +77,27 @@ class FinalAnswer(BaseModel):
 
 def tool_definition(name: str, model: type[BaseModel], description: str) -> dict[str, object]:
     """Produce one strict Responses API function definition."""
-    schema = model.model_json_schema()
-    schema["additionalProperties"] = False
+    schema = strict_json_schema(model)
     return {"type": "function", "name": name, "description": description, "parameters": schema, "strict": True}
+
+
+def strict_json_schema(model: type[BaseModel]) -> dict[str, object]:
+    """Convert a Pydantic schema to the strict subset required by Responses."""
+    schema = model.model_json_schema()
+    converted = _strict_node(schema)
+    if not isinstance(converted, dict):
+        raise TypeError("model schema must be an object")
+    return converted
+
+
+def _strict_node(value: object) -> object:
+    if isinstance(value, list):
+        return [_strict_node(item) for item in value]
+    if not isinstance(value, dict):
+        return value
+    node = {key: _strict_node(item) for key, item in value.items() if key != "default"}
+    properties = node.get("properties")
+    if isinstance(properties, dict):
+        node["additionalProperties"] = False
+        node["required"] = list(properties)
+    return node

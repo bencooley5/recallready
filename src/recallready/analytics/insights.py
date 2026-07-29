@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+from calendar import monthrange
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from datetime import date
 
 from recallready.analytics.comparisons import (
     DEFAULT_MIN_PERCENT_BASELINE,
@@ -49,6 +51,13 @@ def generate_insights(
     category_rows = category_shares(product_categories, total_records=total)
     hazard_rows = category_shares(hazards, total_records=total)
     classification_rows = category_shares(classifications, total_records=total)
+    completed_time_series, partial_period = _completed_periods(
+        time_series, snapshot_metadata
+    )
+    completed_classification_mix, _ = _completed_periods(
+        classification_period_mix, snapshot_metadata
+    )
+    completed_hazard_mix, _ = _completed_periods(hazard_period_mix, snapshot_metadata)
 
     if total == 0:
         statements.append(
@@ -57,9 +66,15 @@ def generate_insights(
     else:
         _append_largest(statements, category_rows, "derived product category")
         _append_largest(statements, hazard_rows, "derived taxonomy tag")
-        _append_period_change(statements, time_series, min_percent_baseline)
-        _append_material_mix_shift(statements, classification_period_mix, "classification")
-        _append_material_mix_shift(statements, hazard_period_mix, "derived hazard")
+        if partial_period:
+            statements.append(
+                f"Partial source month {partial_period} is shown in charts but excluded from period-over-period insight comparisons."
+            )
+        _append_period_change(statements, completed_time_series, min_percent_baseline)
+        _append_material_mix_shift(
+            statements, completed_classification_mix, "classification"
+        )
+        _append_material_mix_shift(statements, completed_hazard_mix, "derived hazard")
         _append_combinations(statements, records)
         _append_lag(statements, records)
         _append_completeness(statements, total, missing_events, completeness)
@@ -77,6 +92,26 @@ def generate_insights(
         min_percent_baseline=min_percent_baseline,
     )
     return InsightBundle(statements=tuple(statements), markdown=markdown)
+
+
+def _completed_periods(
+    rows: Sequence[Mapping[str, object]],
+    snapshot_metadata: Mapping[str, object] | None,
+) -> tuple[list[Mapping[str, object]], str | None]:
+    """Exclude the source's incomplete final month from comparative statements."""
+    raw_updated = (snapshot_metadata or {}).get("source_last_updated")
+    if not isinstance(raw_updated, str):
+        return list(rows), None
+    try:
+        updated = date.fromisoformat(raw_updated[:10])
+    except ValueError:
+        return list(rows), None
+    if updated.day == monthrange(updated.year, updated.month)[1]:
+        return list(rows), None
+    partial = updated.strftime("%Y-%m")
+    if not any(row.get("period") == partial for row in rows):
+        return list(rows), None
+    return [row for row in rows if row.get("period") != partial], partial
 
 
 def _append_largest(

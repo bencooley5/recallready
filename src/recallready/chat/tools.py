@@ -5,12 +5,14 @@ from __future__ import annotations
 from pathlib import Path
 
 from recallready.chat.schemas import (
+    CompareArgs,
     DetailArgs,
     EventArgs,
     Filters,
     GroupArgs,
     MethodologyArgs,
     SearchArgs,
+    TabletopEvidenceArgs,
 )
 from recallready.db.queries import CategoryDimension
 from recallready.db.repository import RecallRepository, RecordFilters
@@ -47,9 +49,6 @@ class ToolDispatcher:
     def detail(self, raw: dict[str, object]) -> dict[str, object]:
         args = DetailArgs.model_validate(raw)
         detail = self.repository.recall_detail(args.recall_number_or_source_record_id)
-        if detail is None:
-            rows = self.repository.search_records(limit=self.max_rows)
-            detail = next((row for row in rows if row.get("recall_number") == args.recall_number_or_source_record_id), None)
         return self._result(detail or {}, _refs([detail] if detail else []))
 
     def event(self, raw: dict[str, object]) -> dict[str, object]:
@@ -62,17 +61,14 @@ class ToolDispatcher:
         return self._result({"topic": topic, "approved_methodology": text[:3000]}, [])
 
     def tabletop(self, raw: dict[str, object]) -> dict[str, object]:
-        args = SearchArgs.model_validate({"filters": raw.get("filters", {}), "query": "", "limit": raw.get("limit", 10)})
+        args = TabletopEvidenceArgs.model_validate(raw)
         rows = self.repository.search_records(_filters(args.filters), limit=min(args.limit, self.max_rows))
         return self._result(rows, _refs(rows))
 
     def compare(self, raw: dict[str, object]) -> dict[str, object]:
         # Segments are structured filters; comparison is descriptive counts only.
-        for key in ("segment_a", "segment_b"):
-            Filters.model_validate(raw.get(key, {}))
-        if raw.get("metric") not in {"product_records", "unique_events"}:
-            raise ValueError("invalid metric")
-        a, b = (_filters(Filters.model_validate(raw[key])) for key in ("segment_a", "segment_b"))
+        args = CompareArgs.model_validate(raw)
+        a, b = _filters(args.segment_a), _filters(args.segment_b)
         return self._result({"segment_a": self.repository.summary_metrics(a), "segment_b": self.repository.summary_metrics(b)}, [])
 
     def _result(self, data: object, refs: list[str]) -> dict[str, object]:
@@ -80,7 +76,13 @@ class ToolDispatcher:
 
 
 def _filters(value: Filters) -> RecordFilters:
-    return RecordFilters(value.start_date, value.end_date, tuple(value.classifications), tuple(value.states), tuple(value.product_categories))
+    return RecordFilters(
+        start_date=value.start_date,
+        end_date=value.end_date,
+        classifications=tuple(value.classifications),
+        states=tuple(value.states),
+        product_categories=tuple(value.product_categories),
+    )
 
 
 def _refs(rows: list[dict[str, object]]) -> list[str]:

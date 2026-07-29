@@ -11,6 +11,13 @@ class SortOption(StrEnum):
     RECALL_NUMBER_ASC = "recall_number_asc"
 
 
+class DateBasis(StrEnum):
+    """Allowlisted source date used for filtering and time aggregation."""
+
+    REPORT_DATE = "report_date"
+    RECALL_INITIATION_DATE = "recall_initiation_date"
+
+
 class CategoryDimension(StrEnum):
     CLASSIFICATION = "classification"
     PRODUCT_CATEGORY = "product_category"
@@ -23,6 +30,10 @@ SORT_SQL = {
     SortOption.REPORT_DATE_DESC: "r.report_date DESC, r.source_record_id ASC",
     SortOption.REPORT_DATE_ASC: "r.report_date ASC, r.source_record_id ASC",
     SortOption.RECALL_NUMBER_ASC: "r.recall_number ASC, r.source_record_id ASC",
+}
+DATE_SQL = {
+    DateBasis.REPORT_DATE: "r.report_date",
+    DateBasis.RECALL_INITIATION_DATE: "r.recall_initiation_date",
 }
 CATEGORY_SQL = {
     CategoryDimension.CLASSIFICATION: "r.classification",

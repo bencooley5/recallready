@@ -10,7 +10,7 @@ import pytest
 
 from recallready.data.normalize import normalize_record
 from recallready.db.build import BuildMetadata, build_database
-from recallready.db.queries import CategoryDimension, SortOption
+from recallready.db.queries import CategoryDimension, DateBasis, SortOption
 from recallready.db.repository import MAX_RESULT_ROWS, RecallRepository, RecordFilters
 from recallready.models import FoodEnforcementRecord, SourceFoodEnforcementRecord
 
@@ -121,5 +121,48 @@ def test_readonly_repository_supports_streamlit_cached_threads(database_path: Pa
             second = executor.submit(repository.summary_metrics)
             assert first.result()["product_record_count"] == 3
             assert second.result()["product_record_count"] == 3
+    finally:
+        repository.close()
+
+
+def test_keyword_and_date_basis_apply_to_all_analytics(database_path: Path) -> None:
+    """Global keyword and date basis constrain metrics and series consistently."""
+    repository = RecallRepository(database_path)
+    try:
+        keyword = RecordFilters(keyword="sesame")
+        assert repository.summary_metrics(keyword)["product_record_count"] == 2
+        assert sum(row["product_record_count"] for row in repository.time_series(keyword)) == 2
+
+        report_basis = RecordFilters(end_date="2023-12-31")
+        initiation_basis = RecordFilters(
+            end_date="2023-12-31", date_basis=DateBasis.RECALL_INITIATION_DATE
+        )
+        assert repository.summary_metrics(report_basis)["product_record_count"] == 1
+        assert repository.summary_metrics(initiation_basis)["product_record_count"] == 0
+    finally:
+        repository.close()
+
+
+def test_exact_dashboard_metrics_and_filter_options(database_path: Path) -> None:
+    """Dashboard cards use the complete filtered set and state options come from data."""
+    repository = RecallRepository(database_path)
+    try:
+        metrics = repository.summary_metrics()
+        assert metrics["unique_normalized_firm_count"] == 1
+        assert metrics["class_i_record_count"] == 3
+        assert metrics["product_description_present_count"] == 3
+        assert repository.median_reporting_lag() == 9.0
+        assert repository.available_values(CategoryDimension.STATE) == ["CA", "NY"]
+    finally:
+        repository.close()
+
+
+def test_public_keyword_is_not_interpreted_as_fts_syntax(database_path: Path) -> None:
+    """Malformed-looking FTS input is treated as a quoted data phrase."""
+    repository = RecallRepository(database_path)
+    try:
+        assert repository.summary_metrics(RecordFilters(keyword='" OR DROP *'))[
+            "product_record_count"
+        ] == 0
     finally:
         repository.close()
