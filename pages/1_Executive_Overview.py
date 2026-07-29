@@ -8,7 +8,7 @@ import streamlit as st
 
 from recallready.analytics.insights import generate_insights
 from recallready.db.queries import CategoryDimension
-from recallready.ui.charts import (
+from recallready.ui.analytics_charts import (
     bar_chart,
     heatmap_chart,
     lag_distribution_chart,
