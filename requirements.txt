@@ -1,3 +1,4 @@
+-e .
 altair==5.5.0
 httpx==0.28.1
 openai==1.68.2
