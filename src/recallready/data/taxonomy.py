@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import sys
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -168,7 +169,7 @@ class ProductCategoryTaxonomy:
 @lru_cache(maxsize=1)
 def load_hazard_taxonomy(path: Path | None = None) -> HazardTaxonomy:
     """Load and validate the committed hazard taxonomy once per process."""
-    source = path or _project_root() / "data" / "taxonomy.yml"
+    source = path or _reference_file("taxonomy.yml")
     document = _load_document(source)
     version = _required_str(document, "taxonomy_version", source)
     precedence = _required_str_list(document, "primary_hazard_precedence", source)
@@ -180,7 +181,7 @@ def load_hazard_taxonomy(path: Path | None = None) -> HazardTaxonomy:
 @lru_cache(maxsize=1)
 def load_product_category_taxonomy(path: Path | None = None) -> ProductCategoryTaxonomy:
     """Load and validate the committed product-category taxonomy once per process."""
-    source = path or _project_root() / "data" / "product_categories.yml"
+    source = path or _reference_file("product_categories.yml")
     document = _load_document(source)
     version = _required_str(document, "taxonomy_version", source)
     raw_rules = _required_list(document, "rules", source)
@@ -188,8 +189,17 @@ def load_product_category_taxonomy(path: Path | None = None) -> ProductCategoryT
     return ProductCategoryTaxonomy(version, rules)
 
 
-def _project_root() -> Path:
-    return Path(__file__).resolve().parents[3]
+def _reference_file(name: str) -> Path:
+    """Resolve public rule data in a checkout or an installed wheel."""
+    candidates = (
+        Path.cwd() / "data" / name,
+        Path(sys.prefix) / "data" / name,
+        Path(__file__).resolve().parents[3] / "data" / name,
+    )
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    return candidates[0]
 
 
 def _load_document(path: Path) -> dict[str, Any]:

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "recallready"
-version = "0.1.0"
+version = "0.2.0"
 description = "Historical U.S. food recall intelligence and tabletop preparedness."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
@@ -30,6 +30,9 @@ dev = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.data-files]
+data = ["data/taxonomy.yml", "data/product_categories.yml", "data/ftl_reference.yml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

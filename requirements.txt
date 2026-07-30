@@ -1,4 +1,4 @@
--e .
+.
 # Deployment revision: interactive analytics and Responses tool-loop repair.
 altair==5.5.0
 httpx==0.28.1
