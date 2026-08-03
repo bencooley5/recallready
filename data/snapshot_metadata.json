@@ -1,9 +1,9 @@
 {
-  "code_commit": "HEAD",
+  "code_commit": "ef4a57da332847456196df457b354c1fcc0232c7",
   "date_coverage_end": "2026-07-22",
   "date_coverage_start": "2012-06-20",
-  "ingestion_completed_at": "2026-07-29T21:04:09.074267+00:00",
-  "ingestion_started_at": "2026-07-29T21:04:08.749721+00:00",
+  "ingestion_completed_at": "2026-08-03T08:45:17.356346+00:00",
+  "ingestion_started_at": "2026-08-03T08:45:16.769437+00:00",
   "normalized_record_count": 29264,
   "raw_record_count": 29264,
   "records_lacking_event_id": 0,
