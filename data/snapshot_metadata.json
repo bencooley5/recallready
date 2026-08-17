@@ -1,21 +1,21 @@
 {
-  "code_commit": "b0eeea4fb420e894efaeb27cb8bb67b3451ca6e9",
-  "date_coverage_end": "2026-07-29",
+  "code_commit": "71a859e853c0423b8e080ad3344ed6f8335ba829",
+  "date_coverage_end": "2026-08-05",
   "date_coverage_start": "2012-06-20",
-  "ingestion_completed_at": "2026-08-10T06:45:17.831031+00:00",
-  "ingestion_started_at": "2026-08-10T06:45:17.236366+00:00",
-  "normalized_record_count": 29275,
-  "raw_record_count": 29275,
+  "ingestion_completed_at": "2026-08-17T05:53:53.236961+00:00",
+  "ingestion_started_at": "2026-08-17T05:53:52.629346+00:00",
+  "normalized_record_count": 29278,
+  "raw_record_count": 29278,
   "records_lacking_event_id": 0,
   "schema_version": "1.0.0",
-  "sha256": "7e0318321afb5ce40b5dfa6bd0b4638f268be4674d0b1d4e53c84f4f7fdb9ae0",
+  "sha256": "cde037462ab57f20076c9ee759bd31e4966e9b501ae2404b9955decb3f55b496",
   "source_endpoint": "https://api.fda.gov/food/enforcement.json",
-  "source_last_updated": "2026-07-29",
+  "source_last_updated": "2026-08-05",
   "source_name": "openFDA food enforcement",
-  "source_total_matches": 29275,
+  "source_total_matches": 29278,
   "taxonomy_versions": [
     "1.0.0"
   ],
-  "unique_events_with_non_null_event_id": 7817,
-  "unique_recall_numbers": 29274
+  "unique_events_with_non_null_event_id": 7820,
+  "unique_recall_numbers": 29277
 }
