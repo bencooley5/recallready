@@ -1,15 +1,15 @@
 {
   "classification_counts": {
-    "Class I": 12985,
-    "Class II": 14763,
-    "Class III": 1763,
+    "Class I": 12994,
+    "Class II": 14798,
+    "Class III": 1793,
     "Not Yet Classified": 1
   },
   "errors": [],
   "passed": true,
   "pre_2012_missing_event_ids": 0,
-  "product_record_count": 29512,
+  "product_record_count": 29586,
   "records_lacking_event_id": 0,
-  "unique_event_count": 7926,
+  "unique_event_count": 7939,
   "warnings": []
 }
